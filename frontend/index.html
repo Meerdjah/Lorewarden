@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lorewarden — Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    body { background: #0d0d1a; color: #e8e8e8; font-family: Georgia, 'Times New Roman', serif; }
+    .gold { color: #c9a227; }
+    .bg-card { background: #16213e; border: 1px solid #2a2a4a; }
+    .bg-card:hover { border-color: #c9a227; transition: border-color .2s; }
+    .btn-gold { background: linear-gradient(135deg,#c9a227,#8b6914); color:#fff; border:none; cursor:pointer; transition:.2s; }
+    .btn-gold:hover { background: linear-gradient(135deg,#e8c547,#c9a227); }
+    .btn-danger { background:#7f1d1d; color:#fca5a5; cursor:pointer; }
+    .btn-danger:hover { background:#991b1b; }
+    .input-dark { background:#0f172a; border:1px solid #334155; color:#e8e8e8; border-radius:6px; padding:8px 12px; width:100%; }
+    .input-dark:focus { outline:none; border-color:#c9a227; }
+    .hp-bar { height:12px; border-radius:6px; background:#1e293b; overflow:hidden; }
+    .hp-fill { height:100%; border-radius:6px; transition:width .4s; }
+    .toast { position:fixed; bottom:24px; right:24px; z-index:9999; padding:12px 20px; border-radius:8px; font-size:14px; animation: fadeIn .3s; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+    .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.7); z-index:100; display:flex; align-items:center; justify-content:center; }
+    .modal-box { background:#1a1a2e; border:1px solid #c9a227; border-radius:12px; padding:28px; width:90%; max-width:480px; }
+    select.input-dark option { background:#0f172a; }
+    ::-webkit-scrollbar { width:6px; } ::-webkit-scrollbar-track { background:#0d0d1a; } ::-webkit-scrollbar-thumb { background:#334155; border-radius:3px; }
+  </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="border-b border-yellow-900 px-6 py-4 flex items-center justify-between" style="background:#12122a">
+  <a href="/" class="text-2xl font-bold gold tracking-widest">⚔ LOREWARDEN</a>
+  <div class="flex gap-6 text-sm">
+    <a href="/"          class="gold font-semibold border-b border-yellow-600 pb-1">Dashboard</a>
+    <a href="/karakter.html" class="text-gray-400 hover:text-yellow-400">Karakter</a>
+    <a href="/session.html"  class="text-gray-400 hover:text-yellow-400">Sesi Bermain</a>
+  </div>
+</nav>
+
+<!-- Header -->
+<div class="px-6 py-8 border-b border-gray-800" style="background:linear-gradient(135deg,#12122a,#1a1a2e)">
+  <h1 class="text-3xl font-bold gold">Dashboard</h1>
+  <p class="text-gray-400 mt-1 text-sm">Platform manajemen karakter TRPG — kelola pemain, karakter, dan sesi bermain</p>
+</div>
+
+<!-- Stats Row -->
+<div class="px-6 py-6 grid grid-cols-3 gap-4">
+  <div class="bg-card rounded-xl p-5 text-center">
+    <div class="text-3xl font-bold gold" id="stat-pemain">—</div>
+    <div class="text-gray-400 text-sm mt-1">Total Pemain</div>
+  </div>
+  <div class="bg-card rounded-xl p-5 text-center">
+    <div class="text-3xl font-bold text-blue-400" id="stat-karakter">—</div>
+    <div class="text-gray-400 text-sm mt-1">Total Karakter</div>
+  </div>
+  <div class="bg-card rounded-xl p-5 text-center">
+    <div class="text-3xl font-bold text-green-400" id="stat-sesi">—</div>
+    <div class="text-gray-400 text-sm mt-1">Sesi Aktif</div>
+  </div>
+</div>
+
+<!-- Pemain Section -->
+<div class="px-6 pb-6">
+  <div class="flex items-center justify-between mb-4">
+    <h2 class="text-xl font-semibold gold">Daftar Pemain</h2>
+    <button onclick="openAddPemain()" class="btn-gold px-4 py-2 rounded-lg text-sm font-semibold">
+      <i class="fas fa-plus mr-1"></i> Tambah Pemain
+    </button>
+  </div>
+  <div id="pemain-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+</div>
+
+<!-- All Characters Section -->
+<div class="px-6 pb-10">
+  <h2 class="text-xl font-semibold gold mb-4">Semua Karakter</h2>
+  <div id="karakter-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+</div>
+
+<!-- Modal Tambah/Edit Pemain -->
+<div id="modal-pemain" class="modal-overlay hidden">
+  <div class="modal-box">
+    <h3 class="text-lg font-bold gold mb-5" id="modal-pemain-title">Tambah Pemain</h3>
+    <input type="hidden" id="pemain-id">
+    <div class="mb-4">
+      <label class="text-sm text-gray-400 mb-1 block">Username *</label>
+      <input type="text" id="pemain-username" class="input-dark" placeholder="contoh: Ranger_Dhika">
+    </div>
+    <div class="mb-6">
+      <label class="text-sm text-gray-400 mb-1 block">Discord ID</label>
+      <input type="text" id="pemain-discord" class="input-dark" placeholder="username#1234">
+    </div>
+    <div class="flex gap-3 justify-end">
+      <button onclick="closeModal('modal-pemain')" class="px-4 py-2 rounded-lg bg-gray-700 text-gray-300 hover:bg-gray-600 text-sm">Batal</button>
+      <button onclick="savePemain()" class="btn-gold px-5 py-2 rounded-lg text-sm font-semibold">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script src="/js/api.js"></script>
+<script>
+  let allPemain = [], allKarakter = [];
+
+  async function loadAll() {
+    try {
+      const [pRes, kRes, sRes] = await Promise.all([
+        api.getPemain(),
+        api.getKarakter(),
+        api.getAllSessions().catch(() => ({ data: [] })),
+      ]);
+      allPemain   = pRes.data;
+      allKarakter = kRes.data;
+
+      document.getElementById('stat-pemain').textContent   = allPemain.length;
+      document.getElementById('stat-karakter').textContent = allKarakter.length;
+      document.getElementById('stat-sesi').textContent     = sRes.count ?? sRes.data?.length ?? 0;
+
+      renderPemain();
+      renderKarakter();
+    } catch (e) { toast(e.message, 'error'); }
+  }
+
+  function renderPemain() {
+    const grid = document.getElementById('pemain-grid');
+    if (!allPemain.length) {
+      grid.innerHTML = '<p class="text-gray-500 text-sm col-span-4">Belum ada pemain. Tambahkan pemain pertama!</p>';
+      return;
+    }
+    grid.innerHTML = allPemain.map(p => `
+      <div class="bg-card rounded-xl p-5">
+        <div class="flex items-start justify-between mb-3">
+          <div>
+            <div class="font-semibold text-yellow-300">${esc(p.username)}</div>
+            <div class="text-xs text-gray-500 mt-0.5">${p.discord_id ? '<i class="fab fa-discord mr-1"></i>' + esc(p.discord_id) : '<span class="text-gray-600">Tanpa Discord</span>'}</div>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="openEditPemain(${p.id})" class="text-yellow-500 hover:text-yellow-300 text-sm"><i class="fas fa-edit"></i></button>
+            <button onclick="deletePemain(${p.id})" class="text-red-500 hover:text-red-300 text-sm"><i class="fas fa-trash"></i></button>
+          </div>
+        </div>
+        <div class="text-sm text-gray-400 mt-2 flex items-center gap-2">
+          <i class="fas fa-users text-blue-400"></i>
+          <span>${p.total_karakter} karakter</span>
+        </div>
+        <a href="/karakter.html?pemain_id=${p.id}" class="mt-3 block text-center text-xs btn-gold px-3 py-1.5 rounded-lg">Lihat Karakter</a>
+      </div>
+    `).join('');
+  }
+
+  function renderKarakter() {
+    const grid = document.getElementById('karakter-grid');
+    if (!allKarakter.length) {
+      grid.innerHTML = '<p class="text-gray-500 text-sm">Belum ada karakter. Buat karakter di halaman Karakter!</p>';
+      return;
+    }
+    grid.innerHTML = allKarakter.map(k => {
+      const hpPct   = k.max_hp ? Math.round((k.max_hp / k.max_hp) * 100) : 100;
+      const hpColor = hpPct > 50 ? '#22c55e' : hpPct > 25 ? '#f59e0b' : '#ef4444';
+      const strMod  = k.strength     ? Math.floor((k.strength     - 10) / 2) : null;
+      return `
+        <div class="bg-card rounded-xl overflow-hidden flex">
+          ${k.gambar_url ? `<img src="${k.gambar_url}" class="w-20 h-28 object-cover flex-shrink-0">` : `<div class="w-20 h-28 flex-shrink-0 flex items-center justify-center text-3xl" style="background:#0f172a">⚔</div>`}
+          <div class="p-4 flex-1 min-w-0">
+            <div class="font-bold text-yellow-300 truncate">${esc(k.nama_karakter)}</div>
+            <div class="text-xs text-gray-400 mt-0.5">${esc(k.race)} · ${esc(k.class)} · Lv.${k.level}</div>
+            <div class="text-xs text-gray-500 mt-0.5">Pemain: ${esc(k.pemain_username)}</div>
+            <div class="hp-bar mt-3">
+              <div class="hp-fill" style="width:${hpPct}%;background:${hpColor}"></div>
+            </div>
+            <div class="text-xs text-gray-400 mt-1">HP Max: ${k.max_hp}</div>
+            <div class="flex gap-2 mt-2">
+              <a href="/karakter.html?edit=${k.id}" class="text-xs text-yellow-500 hover:text-yellow-300"><i class="fas fa-edit mr-1"></i>Edit</a>
+              <a href="/session.html?karakter_id=${k.id}" class="text-xs text-green-400 hover:text-green-300"><i class="fas fa-play mr-1"></i>Sesi</a>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function openAddPemain() {
+    document.getElementById('pemain-id').value = '';
+    document.getElementById('pemain-username').value = '';
+    document.getElementById('pemain-discord').value = '';
+    document.getElementById('modal-pemain-title').textContent = 'Tambah Pemain';
+    document.getElementById('modal-pemain').classList.remove('hidden');
+  }
+
+  async function openEditPemain(id) {
+    try {
+      const res = await api.getPemainById(id);
+      const p   = res.data;
+      document.getElementById('pemain-id').value = p.id;
+      document.getElementById('pemain-username').value = p.username;
+      document.getElementById('pemain-discord').value  = p.discord_id || '';
+      document.getElementById('modal-pemain-title').textContent = 'Edit Pemain';
+      document.getElementById('modal-pemain').classList.remove('hidden');
+    } catch (e) { toast(e.message, 'error'); }
+  }
+
+  async function savePemain() {
+    const id       = document.getElementById('pemain-id').value;
+    const username = document.getElementById('pemain-username').value.trim();
+    const discord  = document.getElementById('pemain-discord').value.trim();
+    if (!username) return toast('Username wajib diisi', 'error');
+    try {
+      if (id) await api.updatePemain(id, { username, discord_id: discord });
+      else    await api.createPemain({ username, discord_id: discord });
+      toast(id ? 'Pemain diperbarui' : 'Pemain ditambahkan', 'success');
+      closeModal('modal-pemain');
+      loadAll();
+    } catch (e) { toast(e.message, 'error'); }
+  }
+
+  async function deletePemain(id) {
+    const p = allPemain.find(x => x.id === id);
+    if (!confirm(`Hapus pemain "${p?.username}"? Semua karakternya juga akan terhapus.`)) return;
+    try {
+      await api.deletePemain(id);
+      toast('Pemain dihapus', 'success');
+      loadAll();
+    } catch (e) { toast(e.message, 'error'); }
+  }
+
+  function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+  function esc(str) {
+    if (!str) return '';
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function toast(msg, type = 'success') {
+    const el = document.createElement('div');
+    el.className = `toast text-sm font-medium ${type === 'success' ? 'bg-green-800 text-green-100' : 'bg-red-900 text-red-100'}`;
+    el.textContent = msg;
+    document.getElementById('toast-container').appendChild(el);
+    setTimeout(() => el.remove(), 3000);
+  }
+
+  document.getElementById('modal-pemain').addEventListener('click', function(e) {
+    if (e.target === this) closeModal('modal-pemain');
+  });
+
+  loadAll();
+</script>
+</body>
+</html>
