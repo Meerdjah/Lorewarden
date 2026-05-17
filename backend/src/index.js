@@ -31,6 +31,10 @@ app.use('/api/session', require('./routes/session'));
 const initMusicRoom = require('./routes/musicRoom');
 initMusicRoom(io);
 
+// Map room WebSocket handler
+const initMapRoom = require('./routes/mapRoom');
+initMapRoom(io);
+
 // Serve React frontend (production build)
 const distPath = path.join(__dirname, '../../frontend/dist');
 app.use(express.static(distPath));

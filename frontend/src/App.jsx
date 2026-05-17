@@ -5,6 +5,7 @@ import Dashboard from './pages/Dashboard'
 import Karakter from './pages/Karakter'
 import Session from './pages/Session'
 import MusicPlayer from './pages/MusicPlayer'
+import MapRoom from './pages/MapRoom'
 
 export default function App() {
   return (
@@ -17,6 +18,7 @@ export default function App() {
             <Route path="/karakter" element={<Karakter />} />
             <Route path="/session" element={<Session />} />
             <Route path="/music" element={<MusicPlayer />} />
+            <Route path="/map" element={<MapRoom />} />
           </Routes>
         </div>
       </ToastProvider>
