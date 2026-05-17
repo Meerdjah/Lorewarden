@@ -1,9 +1,20 @@
 const express = require('express');
-const router  = express.Router();
-const db      = require('../config/db');
-const multer  = require('multer');
-const path    = require('path');
-const fs      = require('fs');
+const router = express.Router();
+const db = require('../config/db');
+const redis = require('../config/redis');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+
+const CACHE_TTL = 300; // 5 minutes
+
+async function invalidateCache() {
+  const keys = await redis.keys('lorewarden:cache:karakter:*');
+  if (keys.length) await redis.del(...keys);
+  // Also invalidate pemain cache since it includes character counts
+  const pemainKeys = await redis.keys('lorewarden:cache:pemain:*');
+  if (pemainKeys.length) await redis.del(...pemainKeys);
+}
 
 const UPLOAD_DIR = path.join(__dirname, '../../uploads');
 
@@ -31,6 +42,15 @@ const upload = multer({
 router.get('/', async (req, res) => {
   try {
     const { pemain_id } = req.query;
+    const cacheKey = `lorewarden:cache:karakter:list:${pemain_id || 'all'}`;
+
+    const cached = await redis.get(cacheKey);
+    if (cached) {
+      console.log(`[Cache HIT] karakter list (pemain=${pemain_id || 'all'})`);
+      return res.json({ success: true, data: JSON.parse(cached) });
+    }
+
+    console.log(`[Cache MISS] karakter list (pemain=${pemain_id || 'all'})`);
     const params = [];
     let where = '';
     if (pemain_id) {
@@ -50,6 +70,7 @@ router.get('/', async (req, res) => {
       ORDER BY k.created_at DESC
     `, params);
 
+    await redis.set(cacheKey, JSON.stringify(result.rows), 'EX', CACHE_TTL);
     res.json({ success: true, data: result.rows });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
@@ -59,6 +80,14 @@ router.get('/', async (req, res) => {
 // GET karakter by id
 router.get('/:id', async (req, res) => {
   try {
+    const cacheKey = `lorewarden:cache:karakter:${req.params.id}`;
+    const cached = await redis.get(cacheKey);
+    if (cached) {
+      console.log(`[Cache HIT] karakter:${req.params.id}`);
+      return res.json({ success: true, data: JSON.parse(cached) });
+    }
+
+    console.log(`[Cache MISS] karakter:${req.params.id}`);
     const result = await db.query(`
       SELECT k.*,
              p.username AS pemain_username,
@@ -74,6 +103,7 @@ router.get('/:id', async (req, res) => {
     if (!result.rows.length)
       return res.status(404).json({ success: false, error: 'Karakter tidak ditemukan' });
 
+    await redis.set(cacheKey, JSON.stringify(result.rows[0]), 'EX', CACHE_TTL);
     res.json({ success: true, data: result.rows[0] });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
@@ -95,6 +125,7 @@ router.post('/', upload.single('gambar'), async (req, res) => {
       RETURNING *
     `, [pemain_id, nama_karakter, race, cls, level || 1, gambar_url, max_hp || 10, background || null, alignment || null]);
 
+    await invalidateCache();
     res.status(201).json({ success: true, data: result.rows[0] });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
@@ -134,6 +165,7 @@ router.put('/:id', upload.single('gambar'), async (req, res) => {
       RETURNING *
     `, [pemain_id, nama_karakter, race, cls, level, gambar_url, max_hp, background, alignment, req.params.id]);
 
+    await invalidateCache();
     res.json({ success: true, data: result.rows[0] });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
@@ -153,6 +185,7 @@ router.delete('/:id', async (req, res) => {
     }
 
     await db.query('DELETE FROM karakter WHERE id = $1', [req.params.id]);
+    await invalidateCache();
     res.json({ success: true, message: 'Karakter berhasil dihapus' });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });

@@ -1,7 +1,7 @@
 require('dotenv').config();
 const express = require('express');
-const cors    = require('cors');
-const path    = require('path');
+const cors = require('cors');
+const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -13,15 +13,16 @@ app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // API routes
-app.use('/api/pemain',   require('./routes/pemain'));
+app.use('/api/pemain', require('./routes/pemain'));
 app.use('/api/karakter', require('./routes/karakter'));
-app.use('/api/atribut',  require('./routes/atribut'));
-app.use('/api/session',  require('./routes/session'));
+app.use('/api/atribut', require('./routes/atribut'));
+app.use('/api/session', require('./routes/session'));
 
-// Serve frontend
-app.use(express.static(path.join(__dirname, '../../frontend')));
+// Serve React frontend (production build)
+const distPath = path.join(__dirname, '../../frontend/dist');
+app.use(express.static(distPath));
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../../frontend/index.html'));
+  res.sendFile(path.join(distPath, 'index.html'));
 });
 
 app.listen(PORT, () => {
