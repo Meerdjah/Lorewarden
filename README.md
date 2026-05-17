@@ -68,24 +68,7 @@ Lorewarden memfasilitasi pemain dan Game Master dalam mengelola karakter TRPG. P
 
 ## 📊 Database Schema (ERD)
 
-```
-┌─────────────────┐     ┌──────────────────────────┐     ┌──────────────────────┐
-│     pemain       │     │        karakter           │     │    atribut_stat       │
-├─────────────────┤     ├──────────────────────────┤     ├──────────────────────┤
-│ PK id (SERIAL)  │◄────│ FK pemain_id (INTEGER)   │     │ PK id (SERIAL)       │
-│    username      │     │ PK id (SERIAL)           │────►│ FK karakter_id (UNQ) │
-│    discord_id    │     │    nama_karakter          │     │    strength           │
-│    created_at    │     │    race                   │     │    dexterity          │
-└─────────────────┘     │    class                  │     │    constitution       │
-                         │    level (1-20)           │     │    intelligence       │
-                         │    gambar_url             │     │    wisdom             │
-                         │    max_hp                 │     │    charisma           │
-                         │    background             │     │    (all 1-30)         │
-                         │    alignment              │     └──────────────────────┘
-                         │    created_at             │
-                         │    updated_at             │
-                         └──────────────────────────┘
-```
+![ERD](https://i.imgur.com/vZrIQBU.png)
 
 ### Relasi
 - **pemain → karakter**: One-to-Many (CASCADE delete)
