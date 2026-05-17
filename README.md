@@ -62,7 +62,7 @@ Lorewarden memfasilitasi pemain dan Game Master dalam mengelola karakter TRPG. P
 
 
 
-![UML](https://i.imgur.com/pK06O0o.png)
+![UML](https://i.imgur.com/BPVis2I.png)
 
 ---
 
