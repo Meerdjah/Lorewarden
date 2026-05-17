@@ -23,9 +23,7 @@ export default function Navbar() {
             <div className="flex gap-8">
                 {link('/', 'Dashboard')}
                 {link('/karakter', 'Karakter')}
-                {link('/session', 'Sesi Bermain')}
-                {link('/map', 'Map')}
-                {link('/music', 'Music')}
+                {link('/room', 'Game Room')}
             </div>
         </nav>
     )

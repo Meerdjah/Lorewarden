@@ -3,9 +3,7 @@ import Navbar from './components/Navbar'
 import { ToastProvider } from './components/Toast'
 import Dashboard from './pages/Dashboard'
 import Karakter from './pages/Karakter'
-import Session from './pages/Session'
-import MusicPlayer from './pages/MusicPlayer'
-import MapRoom from './pages/MapRoom'
+import GameRoom from './pages/GameRoom'
 
 export default function App() {
   return (
@@ -16,9 +14,7 @@ export default function App() {
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/karakter" element={<Karakter />} />
-            <Route path="/session" element={<Session />} />
-            <Route path="/music" element={<MusicPlayer />} />
-            <Route path="/map" element={<MapRoom />} />
+            <Route path="/room" element={<GameRoom />} />
           </Routes>
         </div>
       </ToastProvider>

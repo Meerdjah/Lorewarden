@@ -14,7 +14,7 @@ Laporan: https://www.overleaf.com/read/kmtsvkcxvmtk#c34831
 
 > Platform manajemen digital untuk karakter Tabletop Role-Playing Game (TRPG)
 
-Lorewarden memfasilitasi pemain dan Game Master dalam mengelola karakter TRPG. Platform ini menyediakan manajemen karakter dengan atribut statistik, pelacakan status real-time (HP, Spell Slots, Conditions), music room untuk mendengarkan musik bersama, serta battle map kolaboratif untuk sesi bermain.
+Lorewarden memfasilitasi pemain dan Game Master dalam mengelola karakter TRPG. Platform ini menyediakan manajemen karakter dengan atribut statistik, serta **Game Room** — satu ruang kolaboratif yang menggabungkan session tracker, synced music player, dan collaborative battle map secara real-time.
 
 ---
 
@@ -45,29 +45,31 @@ Lorewarden memfasilitasi pemain dan Game Master dalam mengelola karakter TRPG. P
 - 6 ability scores (STR, DEX, CON, INT, WIS, CHA) dengan modifier otomatis
 - Filter karakter berdasarkan pemain
 
-### Sesi Bermain (Real-Time Tracker)
+### 🎮 Game Room (Unified Room System)
+
+Satu kode room → akses ke 3 fitur sekaligus, berjalan sebagai microservices dalam satu Socket.IO handler:
+
+#### Tab 1: Session Tracker
 - **HP Tracker**: Damage, Heal, Temporary HP, Set HP
 - **Spell Slots**: D&D 5e spell slot table otomatis per class/level
 - **Conditions**: 14 kondisi D&D 5e (Blinded, Charmed, dll)
 - **Death Saving Throws**: 3 sukses / 3 gagal
 - **Inspiration & Exhaustion**: Toggle dan level tracker
-- Data sesi disimpan di Redis dengan TTL 24 jam
+- Data sesi disimpan di Redis (TTL 24 jam) + sync real-time ke room
+- Active Characters panel — semua pemain di room melihat HP satu sama lain
 
-### 🎵 Music Room (Socket.IO)
-- Buat/gabung room dengan kode unik
+#### Tab 2: Music Player
 - Queue YouTube video dan dengarkan bersama (synced playback)
-- Kontrol playback: play, pause, skip, shuffle, repeat
+- Kontrol: play, pause, skip, shuffle, repeat (none/all/one)
 - Volume dan progress bar per user
-- Daftar listener dalam room
+- noembed API untuk auto-fetch judul video
 
-### 🗺 Battle Map (Socket.IO + Konva.js)
-- Buat/gabung map room dengan kode unik
+#### Tab 3: Battle Map
 - **Upload Map**: GM upload background image (battle map)
-- **Grid Overlay**: Konfigurasi grid square on/off dan ukuran
+- **Grid Overlay**: Konfigurasi grid on/off dan ukuran
 - **Token System**: Drag-and-drop token dengan snap-to-grid, warna, dan ukuran custom
 - **Fog of War**: GM menggambar area gelap, toggle reveal per area
 - **Zoom & Pan**: Scroll untuk zoom, drag tool untuk pan
-- Real-time sync semua perubahan via Socket.IO
 
 ### Performa
 - Redis caching pada endpoint GET (pemain & karakter) dengan TTL 5 menit
@@ -95,22 +97,24 @@ Lorewarden memfasilitasi pemain dan Game Master dalam mengelola karakter TRPG. P
 ```
 ┌───────────────────────────────────────────────────────────────┐
 │                   React Frontend (Vite)                        │
-│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌───────┐ ┌───────┐ │
-│  │Dashboard │ │ Karakter │ │ Session  │ │ Music │ │  Map  │ │
-│  └────┬─────┘ └────┬─────┘ └────┬─────┘ └───┬───┘ └───┬───┘ │
-│       └────────────┼────────────┘            │         │     │
-│                    │  REST API                │ Socket.IO     │
-├────────────────────┼─────────────────────────┼─────────┼─────┤
-│                Express.js + Socket.IO Backend                 │
-│  ┌────────────┐ ┌────────────┐ ┌────────────┐ ┌───────────┐ │
-│  │/api/pemain │ │/api/karakter│ │/api/session │ │ WS Rooms  │ │
-│  │/api/atribut│ │            │ │            │ │music + map│ │
-│  └──────┬─────┘ └──────┬─────┘ └─────┬──────┘ └─────┬─────┘ │
-│         │              │              │              │       │
-│    ┌────▼──────────────▼──┐     ┌─────▼──────────────▼────┐  │
+│  ┌──────────┐  ┌──────────┐  ┌──────────────────────────────┐│
+│  │Dashboard │  │ Karakter │  │  Game Room (/room)           ││
+│  │          │  │          │  │  ┌─────────┬───────┬───────┐ ││
+│  │          │  │          │  │  │ Session │ Music │  Map  │ ││
+│  └────┬─────┘  └────┬─────┘  │  └─────────┴───────┴───────┘ ││
+│       └────────────┬─┘       └──────────────┬────────────────┘│
+│                    │  REST API               │  Socket.IO      │
+├────────────────────┼─────────────────────────┼────────────────┤
+│                Express.js + Socket.IO Backend                  │
+│  ┌────────────┐ ┌────────────┐ ┌────────────┐ ┌────────────┐│
+│  │/api/pemain │ │/api/karakter│ │/api/session │ │ gameRoom   ││
+│  │/api/atribut│ │            │ │            │ │ (Socket.IO)││
+│  └──────┬─────┘ └──────┬─────┘ └─────┬──────┘ └──────┬─────┘│
+│         │              │              │               │      │
+│    ┌────▼──────────────▼──┐     ┌─────▼───────────────▼───┐  │
 │    │   PostgreSQL          │     │   Redis                  │  │
-│    │ (pemain, karakter,    │     │ (sessions, cache,        │  │
-│    │  atribut_stat)        │     │  music/map: in-memory)   │  │
+│    │ (pemain, karakter,    │     │ (sessions, cache)        │  │
+│    │  atribut_stat)        │     │ (rooms: in-memory)       │  │
 │    └───────────────────────┘     └──────────────────────────┘  │
 └───────────────────────────────────────────────────────────────┘
 ```
@@ -236,7 +240,7 @@ npm start          # Serve frontend/dist/ dan API di port 3000
 
 ---
 
-## � Deployment (Koyeb)
+## 🚢 Deployment (Koyeb)
 
 Lorewarden menggunakan multi-stage Dockerfile untuk deployment.
 
@@ -258,7 +262,7 @@ Lorewarden menggunakan multi-stage Dockerfile untuk deployment.
 
 ---
 
-## �📡 API Documentation
+## 📡 API Documentation
 
 ### Pemain
 | Method   | Endpoint           | Deskripsi                       |
@@ -300,31 +304,39 @@ Lorewarden menggunakan multi-stage Dockerfile untuk deployment.
 
 ---
 
-## 🔌 WebSocket Events
+## 🔌 WebSocket Events (Game Room)
 
-### Music Room
+Semua event di bawah berjalan dalam satu unified Socket.IO handler (`gameRoom.js`).
+
+### Room Lifecycle
 | Event | Direction | Deskripsi |
 |-------|-----------|-----------|
-| `room:create` | Client → Server | Buat room baru |
-| `room:join` | Client → Server | Gabung room |
+| `room:create` | Client → Server | Buat game room baru (menjadi GM) |
+| `room:join` | Client → Server | Gabung room dengan kode |
 | `room:leave` | Client → Server | Keluar room |
-| `room:state` | Server → Client | Broadcast state room |
+| `room:state` | Server → Client | Broadcast users list |
+| `room:requestState` | Client → Server | Request full state refresh |
+
+### Music (Tab 2)
+| Event | Direction | Deskripsi |
+|-------|-----------|-----------|
+| `music:state` | Server → Client | Broadcast music state |
 | `queue:add` | Client → Server | Tambah lagu ke queue |
 | `queue:remove` | Client → Server | Hapus lagu dari queue |
 | `queue:clear` | Client → Server | Kosongkan queue |
+| `queue:reorder` | Client → Server | Reorder queue |
 | `playback:play/pause` | Client → Server | Toggle playback |
 | `playback:skip` | Client → Server | Skip next/prev |
 | `playback:seek` | Client → Server | Seek ke waktu tertentu |
+| `playback:select` | Client → Server | Play specific track |
 | `playback:shuffle` | Client → Server | Toggle shuffle |
 | `playback:repeat` | Client → Server | Cycle repeat mode |
+| `playback:ended` | Client → Server | Track ended |
 
-### Map Room
+### Map (Tab 3)
 | Event | Direction | Deskripsi |
 |-------|-----------|-----------|
-| `map:create` | Client → Server | Buat map room |
-| `map:join` | Client → Server | Gabung map room |
-| `map:leave` | Client → Server | Keluar map room |
-| `map:state` | Server → Client | Broadcast full state |
+| `map:state` | Server → Client | Broadcast map state |
 | `map:setMap` | Client → Server | Upload background map (GM) |
 | `map:gridConfig` | Client → Server | Update grid settings (GM) |
 | `map:addToken` | Client → Server | Tambah token |
@@ -334,6 +346,14 @@ Lorewarden menggunakan multi-stage Dockerfile untuk deployment.
 | `map:addFog` | Client → Server | Tambah fog area (GM) |
 | `map:toggleFog` | Client → Server | Toggle reveal fog (GM) |
 | `map:clearFog` | Client → Server | Hapus semua fog (GM) |
+
+### Session (Tab 1)
+| Event | Direction | Deskripsi |
+|-------|-----------|-----------|
+| `session:state` | Server → Client | Broadcast session state |
+| `session:loadCharacter` | Client → Server | Load karakter ke room |
+| `session:updateCharacter` | Client → Server | Update HP/spells/conditions |
+| `session:removeCharacter` | Client → Server | Remove karakter dari room |
 
 ---
 
@@ -352,9 +372,8 @@ Lorewarden/
 │   │   │   ├── pemain.js           # CRUD pemain + caching
 │   │   │   ├── karakter.js         # CRUD karakter + caching
 │   │   │   ├── atribut.js          # CRUD atribut stat
-│   │   │   ├── session.js          # Session tracker (Redis)
-│   │   │   ├── musicRoom.js        # Music room (Socket.IO)
-│   │   │   └── mapRoom.js          # Map room (Socket.IO)
+│   │   │   ├── session.js          # Session tracker (Redis REST)
+│   │   │   └── gameRoom.js         # Unified Game Room (Socket.IO)
 │   │   └── index.js                # Express + Socket.IO entry
 │   ├── uploads/                    # Character images
 │   ├── .env.example
@@ -371,9 +390,7 @@ Lorewarden/
 │   │   ├── pages/
 │   │   │   ├── Dashboard.jsx       # Dashboard + player management
 │   │   │   ├── Karakter.jsx        # Character CRUD + stats
-│   │   │   ├── Session.jsx         # Real-time session tracker
-│   │   │   ├── MusicPlayer.jsx     # Synced YouTube music room
-│   │   │   └── MapRoom.jsx         # Collaborative battle map
+│   │   │   └── GameRoom.jsx        # Unified Game Room (3 tabs)
 │   │   ├── api.js                  # REST API client
 │   │   ├── App.jsx                 # Router setup
 │   │   ├── main.jsx                # Entry point
@@ -399,7 +416,8 @@ Lorewarden menggunakan Redis sebagai **database pendukung** dengan dua peran:
 - Data sesi bermain (HP, spell slots, conditions) disimpan sebagai Redis Hash
 - Key pattern: `lorewarden:session:{karakter_id}`
 - TTL: 24 jam — sesi otomatis expired setelah tidak aktif
-- **Alasan**: Sesi bermain membutuhkan read/write yang sangat cepat dan data bersifat ephemeral
+- Sesi juga di-sync ke Game Room via Socket.IO agar semua pemain melihat status secara real-time
+- **Alasan**: Read/write cepat, data ephemeral
 
 ### 2. Query Cache
 - Response dari GET endpoints (pemain list, karakter list) di-cache
@@ -407,12 +425,12 @@ Lorewarden menggunakan Redis sebagai **database pendukung** dengan dua peran:
 - TTL: 5 menit
 - Cache invalidation: Otomatis saat ada operasi POST/PUT/DELETE
 - Console logging untuk monitoring cache HIT/MISS
-- **Alasan**: Mengurangi beban query ke PostgreSQL untuk data yang jarang berubah
+- **Alasan**: Mengurangi beban query ke PostgreSQL
 
-### 3. Real-Time Rooms (In-Memory)
-- Music Room dan Map Room state disimpan **in-memory** di server (bukan Redis)
+### 3. Real-Time Game Room (In-Memory)
+- Game Room state (music/map/session) disimpan **in-memory** di server
 - Auto-cleanup saat room kosong
-- **Alasan**: Data ephemeral per-session, tidak perlu persistence
+- **Alasan**: Data ephemeral per-room, tidak perlu persistence
 
 ---
 

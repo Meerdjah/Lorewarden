@@ -27,13 +27,9 @@ app.use('/api/karakter', require('./routes/karakter'));
 app.use('/api/atribut', require('./routes/atribut'));
 app.use('/api/session', require('./routes/session'));
 
-// Music room WebSocket handler
-const initMusicRoom = require('./routes/musicRoom');
-initMusicRoom(io);
-
-// Map room WebSocket handler
-const initMapRoom = require('./routes/mapRoom');
-initMapRoom(io);
+// Unified Game Room WebSocket handler (music + map + session)
+const initGameRoom = require('./routes/gameRoom');
+initGameRoom(io);
 
 // Serve React frontend (production build)
 const distPath = path.resolve(__dirname, process.env.FRONTEND_DIST_PATH || '../../frontend/dist');
