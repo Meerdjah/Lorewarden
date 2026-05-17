@@ -8,6 +8,9 @@ by:
 - Jonathan Matius Weni Gerimu - 2306161896
 - Mirza Adi Raffiansyah - 2306210323
 
+PPT: https://docs.google.com/presentation/d/1L0tj1WZFk1MWPd0HHHCQ8sepiT7YZfCBDV-bGimfWc4/edit?usp=sharing
+
+
 
 > Platform manajemen digital untuk karakter Tabletop Role-Playing Game (TRPG)
 
@@ -412,6 +415,12 @@ Lorewarden menggunakan Redis sebagai **database pendukung** dengan dua peran:
 - **Alasan**: Data ephemeral per-session, tidak perlu persistence
 
 ---
+
+## Live Demo Information
+
+- Database: Supabase
+- Redis: Upstash
+- Deployment: Koyeb
 
 ## 📝 Lisensi
 
