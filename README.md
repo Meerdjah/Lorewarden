@@ -10,7 +10,7 @@ by:
 
 PPT: https://docs.google.com/presentation/d/1L0tj1WZFk1MWPd0HHHCQ8sepiT7YZfCBDV-bGimfWc4/edit?usp=sharing
 
-
+Laporan: https://www.overleaf.com/read/kmtsvkcxvmtk#c34831
 
 > Platform manajemen digital untuk karakter Tabletop Role-Playing Game (TRPG)
 
