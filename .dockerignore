@@ -1,0 +1,11 @@
+node_modules
+.git
+.gitignore
+*.md
+frontend/node_modules
+frontend/dist
+backend/node_modules
+backend/uploads/*.jpg
+backend/uploads/*.png
+backend/uploads/*.gif
+backend/uploads/*.webp

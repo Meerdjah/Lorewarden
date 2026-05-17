@@ -36,7 +36,7 @@ const initMapRoom = require('./routes/mapRoom');
 initMapRoom(io);
 
 // Serve React frontend (production build)
-const distPath = path.join(__dirname, '../../frontend/dist');
+const distPath = path.resolve(__dirname, process.env.FRONTEND_DIST_PATH || '../../frontend/dist');
 app.use(express.static(distPath));
 app.get('*', (req, res) => {
   res.sendFile(path.join(distPath, 'index.html'));
