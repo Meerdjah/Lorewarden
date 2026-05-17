@@ -60,7 +60,7 @@ Lorewarden memfasilitasi pemain dan Game Master dalam mengelola karakter TRPG. P
 
 ## 🏗 Arsitektur
 
-```
+///```
 ┌──────────────────────────────────────────────────────────┐
 │                React Frontend (Vite)                      │
 │  ┌──────────┐  ┌──────────────┐  ┌──────────────────┐   │
@@ -83,6 +83,8 @@ Lorewarden memfasilitasi pemain dan Game Master dalam mengelola karakter TRPG. P
 │    └────────────────────────┘     └───────────────────┘  │
 └──────────────────────────────────────────────────────────┘
 ```
+
+![UML](https://imgur.com/a/R7pUOoR)
 
 ---
 
