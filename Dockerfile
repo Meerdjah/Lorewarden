@@ -2,7 +2,7 @@
 FROM node:20-alpine AS frontend-build
 WORKDIR /app/frontend
 COPY frontend/package*.json ./
-RUN npm ci
+RUN npm install
 COPY frontend/ ./
 ARG VITE_API_URL=""
 ENV VITE_API_URL=$VITE_API_URL
@@ -14,7 +14,7 @@ WORKDIR /app
 
 # Install backend deps
 COPY backend/package*.json ./
-RUN npm ci --omit=dev
+RUN npm install --omit=dev
 
 # Copy backend source
 COPY backend/src ./src
