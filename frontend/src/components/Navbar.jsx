@@ -24,6 +24,7 @@ export default function Navbar() {
                 {link('/', 'Dashboard')}
                 {link('/karakter', 'Karakter')}
                 {link('/session', 'Sesi Bermain')}
+                {link('/music', 'Music')}
             </div>
         </nav>
     )

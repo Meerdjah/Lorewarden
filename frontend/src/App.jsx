@@ -4,6 +4,7 @@ import { ToastProvider } from './components/Toast'
 import Dashboard from './pages/Dashboard'
 import Karakter from './pages/Karakter'
 import Session from './pages/Session'
+import MusicPlayer from './pages/MusicPlayer'
 
 export default function App() {
   return (
@@ -15,6 +16,7 @@ export default function App() {
             <Route path="/" element={<Dashboard />} />
             <Route path="/karakter" element={<Karakter />} />
             <Route path="/session" element={<Session />} />
+            <Route path="/music" element={<MusicPlayer />} />
           </Routes>
         </div>
       </ToastProvider>
